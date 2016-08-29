@@ -12,6 +12,8 @@ require 'date'
 
 class Destroyer
 
+  DATE_COLUMNS_COUNT = 4
+
   def initialize(path)
     Spreadsheet.client_encoding = 'UTF-8'
 
@@ -25,13 +27,13 @@ class Destroyer
   def initialize_new_document
     @new_document = Spreadsheet::Workbook.new
     @new_sheet = @new_document.create_worksheet(name: 'opraveno')
-    
-    # TODO remove first line from iteration
-    # @new_sheet.row(0).concat @document.worksheet(0).row(0)
+
+    # first row
+    @new_sheet.row(0).concat @document.worksheet(0).row(0)
   end
 
   def destroy_world
-    new_index = 0
+    new_index = 1
     @document.worksheet(0).each do |row|
       if valid_row? row
         @new_sheet.row(new_index).concat row
@@ -68,10 +70,17 @@ class Destroyer
     end
   end
 
+  def reasonable_columns
+    @reasonable_columns ||=
+      @document.worksheet(0).row(0).drop(DATE_COLUMNS_COUNT)
+  end
+
   def save
     new_path = @path.delete('.xls') << '_prvni_oprava.xls'
-    puts @new_document.write new_path
+    puts "Station ID: #{@document.worksheet(0).row(1)[0]}"
     puts "There are #{@empty_values} empty values"
+    puts "and #{reasonable_columns.count} reasonable columns: #{reasonable_columns}"
+    puts ""
   end
 
 end
